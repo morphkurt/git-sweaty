@@ -88,7 +88,7 @@
       .summary {
         display: grid;
         gap: 16px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .summary-card {
@@ -125,6 +125,21 @@
         border-radius: 50%;
       }
 
+      .type-section {
+        display: grid;
+        gap: 12px;
+      }
+
+      .type-header {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .type-list {
+        display: grid;
+        gap: 16px;
+      }
+
       .card {
         background: var(--card);
         border: 1px solid rgba(148, 163, 184, 0.2);
@@ -142,7 +157,6 @@
       .heatmaps {
         display: grid;
         gap: 24px;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
 
       .heatmap-area {
@@ -174,22 +188,6 @@
       .day-label {
         text-align: right;
         width: 30px;
-      }
-
-      .legend {
-        display: flex;
-        gap: 6px;
-        align-items: center;
-        color: var(--muted);
-        font-size: 12px;
-        margin-top: 12px;
-      }
-
-      .legend span {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
-        display: inline-block;
       }
 
       .grid {
@@ -247,6 +245,9 @@
         }
         h1 {
           font-size: 22px;
+        }
+        .summary {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
     </style>

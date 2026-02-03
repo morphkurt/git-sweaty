@@ -3,11 +3,11 @@ const GAP = 2;
 const LABEL_LEFT = 36;
 const LABEL_TOP = 20;
 
-const DEFAULT_COLORS = ["#edf8f7", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"];
+const DEFAULT_COLORS = ["#eef2f6", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"];
 const TYPE_COLORS = {
-  Run: ["#eef6ff", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
-  Ride: ["#fff4e6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
-  WeightTraining: ["#f4e9ff", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
+  Run: ["#eef2f6", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
+  Ride: ["#eef2f6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
+  WeightTraining: ["#eef2f6", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -19,15 +19,6 @@ const heatmaps = document.getElementById("heatmaps");
 const tooltip = document.getElementById("tooltip");
 const summary = document.getElementById("summary");
 const updated = document.getElementById("updated");
-
-function level(count, maxCount) {
-  if (count <= 0 || maxCount <= 0) return 0;
-  if (maxCount === 1) return 1;
-  const ratio = count / maxCount;
-  let lvl = Math.floor(ratio * 3) + 1;
-  if (lvl > 4) lvl = 4;
-  return lvl;
-}
 
 function mondayOnOrBefore(d) {
   const day = d.getDay();
@@ -60,6 +51,11 @@ function getColors(type) {
   return TYPE_COLORS[type] || DEFAULT_COLORS;
 }
 
+function displayType(type) {
+  if (type === "WeightTraining") return "Weight Training";
+  return type;
+}
+
 function formatDistance(meters, units) {
   if (units.distance === "km") {
     return `${(meters / 1000).toFixed(1)} km`;
@@ -75,21 +71,11 @@ function formatDuration(seconds) {
   return `${minutes}m`;
 }
 
-function buildLegend(colors) {
-  const legend = document.createElement("div");
-  legend.className = "legend";
-  const label = document.createElement("span");
-  label.textContent = "Less";
-  legend.appendChild(label);
-  colors.forEach((color) => {
-    const swatch = document.createElement("span");
-    swatch.style.background = color;
-    legend.appendChild(swatch);
-  });
-  const more = document.createElement("span");
-  more.textContent = "More";
-  legend.appendChild(more);
-  return legend;
+function formatElevation(meters, units) {
+  if (units.elevation === "m") {
+    return `${Math.round(meters)} m`;
+  }
+  return `${Math.round(meters * 3.28084)} ft`;
 }
 
 function buildSummary(payload) {
@@ -99,6 +85,7 @@ function buildSummary(payload) {
     count: 0,
     distance: 0,
     moving_time: 0,
+    elevation: 0,
   };
   const typeTotals = {};
   const activeDays = new Set();
@@ -115,6 +102,7 @@ function buildSummary(payload) {
         totals.count += entry.count || 0;
         totals.distance += entry.distance || 0;
         totals.moving_time += entry.moving_time || 0;
+        totals.elevation += entry.elevation_gain || 0;
         typeTotals[type].count += entry.count || 0;
       });
     });
@@ -123,6 +111,7 @@ function buildSummary(payload) {
   const cards = [
     { title: "Total Workouts", value: totals.count.toLocaleString() },
     { title: "Total Distance", value: formatDistance(totals.distance, payload.units || { distance: "mi" }) },
+    { title: "Total Elevation", value: formatElevation(totals.elevation, payload.units || { elevation: "ft" }) },
     { title: "Total Time", value: formatDuration(totals.moving_time) },
     { title: "Active Days", value: activeDays.size.toLocaleString() },
   ];
@@ -146,7 +135,7 @@ function buildSummary(payload) {
     typeCard.className = "summary-card";
     const title = document.createElement("div");
     title.className = "summary-title";
-    title.textContent = `${type} Workouts`;
+    title.textContent = `${displayType(type)} Workouts`;
     const value = document.createElement("div");
     value.className = "summary-type";
     const dot = document.createElement("span");
@@ -175,9 +164,6 @@ function buildHeatmapArea(aggregates, year, units, colors, type) {
   const yearEnd = new Date(year, 11, 31);
   const start = mondayOnOrBefore(yearStart);
   const end = sundayOnOrAfter(yearEnd);
-
-  const entries = Object.values(aggregates || {});
-  const maxCount = entries.reduce((max, entry) => Math.max(max, entry.count || 0), 0);
 
   for (let month = 0; month < 12; month += 1) {
     const monthStart = new Date(year, month, 1);
@@ -228,8 +214,8 @@ function buildHeatmapArea(aggregates, year, units, colors, type) {
       continue;
     }
 
-    const lvl = level(entry.count || 0, maxCount);
-    cell.style.background = colors[lvl];
+    const filled = (entry.count || 0) > 0;
+    cell.style.background = filled ? colors[4] : colors[0];
 
     const durationMinutes = Math.round((entry.moving_time || 0) / 60);
     const duration = durationMinutes >= 60
@@ -276,14 +262,12 @@ function buildCard(type, year, aggregates, units) {
 
   const title = document.createElement("div");
   title.className = "card-title";
-  title.textContent = `${type} · ${year}`;
+  title.textContent = `${displayType(type)} · ${year}`;
   card.appendChild(title);
 
   const colors = getColors(type);
   const heatmapArea = buildHeatmapArea(aggregates, year, units, colors, type);
   card.appendChild(heatmapArea);
-  card.appendChild(buildLegend(colors));
-
   return card;
 }
 
@@ -308,7 +292,7 @@ async function init() {
   payload.types.forEach((type) => {
     const opt = document.createElement("option");
     opt.value = type;
-    opt.textContent = type;
+    opt.textContent = displayType(type);
     typeSelect.appendChild(opt);
   });
 
@@ -333,11 +317,22 @@ async function init() {
 
     heatmaps.innerHTML = "";
     types.forEach((type) => {
+      const section = document.createElement("div");
+      section.className = "type-section";
+      const header = document.createElement("div");
+      header.className = "type-header";
+      header.textContent = displayType(type);
+      section.appendChild(header);
+
+      const list = document.createElement("div");
+      list.className = "type-list";
       years.forEach((year) => {
         const aggregates = payload.aggregates?.[String(year)]?.[type] || {};
         const card = buildCard(type, year, aggregates, payload.units || { distance: "mi", elevation: "ft" });
-        heatmaps.appendChild(card);
+        list.appendChild(card);
       });
+      section.appendChild(list);
+      heatmaps.appendChild(section);
     });
   }
 

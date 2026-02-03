@@ -25,11 +25,11 @@ PADDING = 16
 LABEL_LEFT = 36
 LABEL_TOP = 20
 
-DEFAULT_COLORS = ["#edf8f7", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"]
+DEFAULT_COLORS = ["#eef2f6", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"]
 TYPE_COLORS = {
-    "Run": ["#eef6ff", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
-    "Ride": ["#fff4e6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
-    "WeightTraining": ["#f4e9ff", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
+    "Run": ["#eef2f6", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
+    "Ride": ["#eef2f6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
+    "WeightTraining": ["#eef2f6", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
 }
 LABEL_COLOR = "#6b7280"
 TEXT_COLOR = "#111827"
@@ -58,16 +58,8 @@ def _sunday_on_or_after(d: date) -> date:
     return d + timedelta(days=(6 - d.weekday()))
 
 
-def _level(count: int, max_count: int) -> int:
-    if count <= 0 or max_count <= 0:
-        return 0
-    if max_count == 1:
-        return 1
-    ratio = count / max_count
-    level = int(ratio * 3) + 1
-    if level > 4:
-        level = 4
-    return level
+def _level(count: int) -> int:
+    return 4 if count > 0 else 0
 
 
 def _build_title(date_str: str, entry: Dict, units: Dict[str, str]) -> str:
@@ -101,10 +93,6 @@ def _svg_for_year(
 
     grid_x = PADDING + LABEL_LEFT
     grid_y = PADDING + LABEL_TOP
-
-    max_count = 0
-    for entry in entries.values():
-        max_count = max(max_count, int(entry.get("count", 0)))
 
     colors = TYPE_COLORS.get(activity_type, DEFAULT_COLORS)
 
@@ -158,7 +146,7 @@ def _svg_for_year(
                 "activity_ids": [],
             })
             count = int(entry.get("count", 0))
-            level = _level(count, max_count)
+            level = _level(count)
             color = colors[level]
             title = _build_title(date_str, entry, units)
             activity_ids = entry.get("activity_ids", [])
@@ -219,6 +207,14 @@ def _update_readme(types: List[str], years_desc: List[int]) -> None:
         new_content = before + start_tag + "\n" + section + end_tag + after
     else:
         new_content = content.rstrip() + "\n\n" + start_tag + "\n" + section + end_tag + "\n"
+
+    updated_tag_start = "<!-- UPDATED:START -->"
+    updated_tag_end = "<!-- UPDATED:END -->"
+    updated_value = utc_now().strftime("%Y-%m-%d %H:%M UTC")
+    if updated_tag_start in new_content and updated_tag_end in new_content:
+        before, rest = new_content.split(updated_tag_start, 1)
+        _, after = rest.split(updated_tag_end, 1)
+        new_content = before + updated_tag_start + updated_value + updated_tag_end + after
 
     with open(README_PATH, "w", encoding="utf-8") as f:
         f.write(new_content)
