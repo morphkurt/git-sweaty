@@ -160,31 +160,49 @@
       }
 
       .heatmap-area {
-        position: relative;
-        display: inline-block;
-        z-index: 0;
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        grid-template-rows: 18px auto;
+        column-gap: 8px;
+        row-gap: 0;
+        align-items: start;
       }
 
       .year-label,
       .month-label,
       .day-label {
-        position: absolute;
         font-family: "JetBrains Mono", monospace;
-        color: var(--muted);
         font-size: 10px;
         line-height: 10px;
-        z-index: 3;
       }
 
       .year-label {
         font-size: 12px;
         color: var(--text);
-        top: 0;
-        left: 0;
+        grid-column: 1;
+        grid-row: 1;
+        align-self: end;
+      }
+
+      .month-row {
+        position: relative;
+        grid-column: 2;
+        grid-row: 1;
+        height: 18px;
       }
 
       .month-label {
-        top: 0;
+        position: absolute;
+        top: 2px;
+        color: var(--muted);
+      }
+
+      .day-col {
+        grid-column: 1;
+        grid-row: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
       }
 
       .day-label {
@@ -194,8 +212,8 @@
       }
 
       .grid {
-        position: relative;
-        z-index: 0;
+        grid-column: 2;
+        grid-row: 2;
         display: grid;
         grid-auto-flow: column;
         grid-auto-columns: var(--cell);

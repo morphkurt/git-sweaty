@@ -1,13 +1,12 @@
 const CELL = 12;
 const GAP = 2;
-const LABEL_LEFT = 36;
-const LABEL_TOP = 20;
+const GRID_PADDING = 8;
 
-const DEFAULT_COLORS = ["#f1f5f9", "#cfe6df", "#a7d3c8", "#6db8a7", "#3f8b7a"];
+const DEFAULT_COLORS = ["#f3f5f8", "#dfeae4", "#bdd8cf", "#8ebfad", "#5f9f8a"];
 const TYPE_COLORS = {
-  Run: ["#f1f5f9", "#d9e6f7", "#b6cfee", "#7da7db", "#3a72b8"],
-  Ride: ["#f1f5f9", "#d7efe1", "#a8d8bf", "#6fb494", "#2f7f5d"],
-  WeightTraining: ["#f1f5f9", "#f3d3d3", "#e9a8a8", "#d86e6e", "#b23b3b"],
+  Run: ["#f3f5f8", "#dee8f6", "#bfcfe9", "#93aed7", "#5d82c1"],
+  Ride: ["#f3f5f8", "#dff1e7", "#bcdcc9", "#8cbda2", "#5c9674"],
+  WeightTraining: ["#f3f5f8", "#f3dddd", "#e7bcbc", "#d59393", "#b66565"],
 };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -174,6 +173,25 @@ function buildHeatmapArea(aggregates, year, units, colors, type) {
   yearLabel.textContent = year;
   heatmapArea.appendChild(yearLabel);
 
+  const monthRow = document.createElement("div");
+  monthRow.className = "month-row";
+  monthRow.style.paddingLeft = `${GRID_PADDING}px`;
+  heatmapArea.appendChild(monthRow);
+
+  const dayCol = document.createElement("div");
+  dayCol.className = "day-col";
+  dayCol.style.paddingTop = `${GRID_PADDING}px`;
+  dayCol.style.gap = `${GAP}px`;
+  DAYS.forEach((label) => {
+    const dayLabel = document.createElement("div");
+    dayLabel.className = "day-label";
+    dayLabel.textContent = label;
+    dayLabel.style.height = `${CELL}px`;
+    dayLabel.style.lineHeight = `${CELL}px`;
+    dayCol.appendChild(dayLabel);
+  });
+  heatmapArea.appendChild(dayCol);
+
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31);
   const start = mondayOnOrBefore(yearStart);
@@ -185,23 +203,12 @@ function buildHeatmapArea(aggregates, year, units, colors, type) {
     const monthLabel = document.createElement("div");
     monthLabel.className = "month-label";
     monthLabel.textContent = MONTHS[month];
-    monthLabel.style.left = `${LABEL_LEFT + weekIndex * (CELL + GAP)}px`;
-    heatmapArea.appendChild(monthLabel);
+    monthLabel.style.left = `${weekIndex * (CELL + GAP)}px`;
+    monthRow.appendChild(monthLabel);
   }
-
-  DAYS.forEach((label, row) => {
-    const dayLabel = document.createElement("div");
-    dayLabel.className = "day-label";
-    dayLabel.textContent = label;
-    dayLabel.style.left = `${LABEL_LEFT - 6}px`;
-    dayLabel.style.top = `${LABEL_TOP + row * (CELL + GAP) + 2}px`;
-    heatmapArea.appendChild(dayLabel);
-  });
 
   const grid = document.createElement("div");
   grid.className = "grid";
-  grid.style.marginLeft = `${LABEL_LEFT}px`;
-  grid.style.marginTop = `${LABEL_TOP}px`;
 
   for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
     const dateStr = day.toISOString().slice(0, 10);
