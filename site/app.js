@@ -1,10 +1,22 @@
-const COLORS = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"];
+const CELL = 12;
+const GAP = 2;
+const LABEL_LEFT = 36;
+const LABEL_TOP = 20;
+
+const DEFAULT_COLORS = ["#edf8f7", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"];
+const TYPE_COLORS = {
+  Run: ["#eef6ff", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
+  Ride: ["#fff4e6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
+  WeightTraining: ["#f4e9ff", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
+};
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const typeSelect = document.getElementById("typeSelect");
 const yearSelect = document.getElementById("yearSelect");
-const heatmap = document.getElementById("heatmap");
+const heatmaps = document.getElementById("heatmaps");
 const tooltip = document.getElementById("tooltip");
-const legend = document.getElementById("legend");
 
 function level(count, maxCount) {
   if (count <= 0 || maxCount <= 0) return 0;
@@ -31,21 +43,6 @@ function sundayOnOrAfter(d) {
   return result;
 }
 
-function buildLegend() {
-  legend.innerHTML = "";
-  const label = document.createElement("span");
-  label.textContent = "Less";
-  legend.appendChild(label);
-  COLORS.forEach((color) => {
-    const swatch = document.createElement("span");
-    swatch.style.background = color;
-    legend.appendChild(swatch);
-  });
-  const more = document.createElement("span");
-  more.textContent = "More";
-  legend.appendChild(more);
-}
-
 function showTooltip(text, x, y) {
   tooltip.textContent = text;
   tooltip.style.left = `${x + 12}px`;
@@ -57,8 +54,35 @@ function hideTooltip() {
   tooltip.classList.remove("visible");
 }
 
-function renderGrid(aggregates, year, units) {
-  heatmap.innerHTML = "";
+function getColors(type) {
+  return TYPE_COLORS[type] || DEFAULT_COLORS;
+}
+
+function buildLegend(colors) {
+  const legend = document.createElement("div");
+  legend.className = "legend";
+  const label = document.createElement("span");
+  label.textContent = "Less";
+  legend.appendChild(label);
+  colors.forEach((color) => {
+    const swatch = document.createElement("span");
+    swatch.style.background = color;
+    legend.appendChild(swatch);
+  });
+  const more = document.createElement("span");
+  more.textContent = "More";
+  legend.appendChild(more);
+  return legend;
+}
+
+function buildHeatmapArea(aggregates, year, units, colors) {
+  const heatmapArea = document.createElement("div");
+  heatmapArea.className = "heatmap-area";
+
+  const yearLabel = document.createElement("div");
+  yearLabel.className = "year-label";
+  yearLabel.textContent = year;
+  heatmapArea.appendChild(yearLabel);
 
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31);
@@ -67,6 +91,30 @@ function renderGrid(aggregates, year, units) {
 
   const entries = Object.values(aggregates || {});
   const maxCount = entries.reduce((max, entry) => Math.max(max, entry.count || 0), 0);
+
+  for (let month = 0; month < 12; month += 1) {
+    const monthStart = new Date(year, month, 1);
+    const weekIndex = Math.floor((monthStart - start) / (1000 * 60 * 60 * 24 * 7));
+    const monthLabel = document.createElement("div");
+    monthLabel.className = "month-label";
+    monthLabel.textContent = MONTHS[month];
+    monthLabel.style.left = `${LABEL_LEFT + weekIndex * (CELL + GAP)}px`;
+    heatmapArea.appendChild(monthLabel);
+  }
+
+  DAYS.forEach((label, row) => {
+    const dayLabel = document.createElement("div");
+    dayLabel.className = "day-label";
+    dayLabel.textContent = label;
+    dayLabel.style.left = `${LABEL_LEFT - 6}px`;
+    dayLabel.style.top = `${LABEL_TOP + row * (CELL + GAP) + 2}px`;
+    heatmapArea.appendChild(dayLabel);
+  });
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  grid.style.marginLeft = `${LABEL_LEFT}px`;
+  grid.style.marginTop = `${LABEL_TOP}px`;
 
   for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
     const dateStr = day.toISOString().slice(0, 10);
@@ -89,12 +137,12 @@ function renderGrid(aggregates, year, units) {
 
     if (!inYear) {
       cell.classList.add("outside");
-      heatmap.appendChild(cell);
+      grid.appendChild(cell);
       continue;
     }
 
     const lvl = level(entry.count || 0, maxCount);
-    cell.style.background = COLORS[lvl];
+    cell.style.background = colors[lvl];
 
     const distance = units.distance === "km"
       ? `${(entry.distance / 1000).toFixed(2)} km`
@@ -117,13 +165,38 @@ function renderGrid(aggregates, year, units) {
     });
     cell.addEventListener("mouseleave", hideTooltip);
 
-    heatmap.appendChild(cell);
+    grid.appendChild(cell);
   }
+
+  heatmapArea.appendChild(grid);
+  return heatmapArea;
+}
+
+function buildCard(type, year, aggregates, units) {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const title = document.createElement("div");
+  title.className = "card-title";
+  title.textContent = `${type} · ${year}`;
+  card.appendChild(title);
+
+  const colors = getColors(type);
+  const heatmapArea = buildHeatmapArea(aggregates, year, units, colors);
+  card.appendChild(heatmapArea);
+  card.appendChild(buildLegend(colors));
+
+  return card;
 }
 
 async function init() {
   const resp = await fetch("data.json");
   const payload = await resp.json();
+
+  const allTypesOption = document.createElement("option");
+  allTypesOption.value = "all";
+  allTypesOption.textContent = "All types";
+  typeSelect.appendChild(allTypesOption);
 
   payload.types.forEach((type) => {
     const opt = document.createElement("option");
@@ -131,6 +204,11 @@ async function init() {
     opt.textContent = type;
     typeSelect.appendChild(opt);
   });
+
+  const allYearsOption = document.createElement("option");
+  allYearsOption.value = "all";
+  allYearsOption.textContent = "All years";
+  yearSelect.appendChild(allYearsOption);
 
   payload.years.slice().reverse().forEach((year) => {
     const opt = document.createElement("option");
@@ -140,19 +218,27 @@ async function init() {
   });
 
   function update() {
-    const type = typeSelect.value;
-    const year = Number(yearSelect.value);
-    const aggregates = payload.aggregates?.[String(year)]?.[type] || {};
-    renderGrid(aggregates, year, payload.units || { distance: "mi", elevation: "ft" });
+    const selectedType = typeSelect.value;
+    const selectedYear = yearSelect.value;
+    const types = selectedType === "all" ? payload.types : [selectedType];
+    const years = selectedYear === "all" ? payload.years : [Number(selectedYear)];
+    years.sort((a, b) => b - a);
+
+    heatmaps.innerHTML = "";
+    types.forEach((type) => {
+      years.forEach((year) => {
+        const aggregates = payload.aggregates?.[String(year)]?.[type] || {};
+        const card = buildCard(type, year, aggregates, payload.units || { distance: "mi", elevation: "ft" });
+        heatmaps.appendChild(card);
+      });
+    });
   }
 
   typeSelect.addEventListener("change", update);
   yearSelect.addEventListener("change", update);
 
-  buildLegend();
-
-  typeSelect.value = payload.types[0] || "";
-  yearSelect.value = String(payload.years[payload.years.length - 1] || "");
+  typeSelect.value = "all";
+  yearSelect.value = "all";
   update();
 }
 

@@ -22,8 +22,17 @@ SITE_DATA_PATH = os.path.join("site", "data.json")
 CELL = 12
 GAP = 2
 PADDING = 16
+LABEL_LEFT = 36
+LABEL_TOP = 20
 
-COLORS = ["#ebedf0", "#c6e48b", "#7bc96f", "#239a3b", "#196127"]
+DEFAULT_COLORS = ["#edf8f7", "#bce9e4", "#76d7cf", "#2bb7a5", "#0b7f6d"]
+TYPE_COLORS = {
+    "Run": ["#eef6ff", "#bfe3ff", "#7ac7ff", "#2f97ff", "#005ae6"],
+    "Ride": ["#fff4e6", "#ffd6a1", "#ffad4d", "#ff7a1a", "#d14b00"],
+    "WeightTraining": ["#f4e9ff", "#d8b8ff", "#b17bff", "#8a3ffc", "#5f17d6"],
+}
+LABEL_COLOR = "#6b7280"
+TEXT_COLOR = "#111827"
 
 
 def _year_range_from_config(config: Dict) -> List[int]:
@@ -76,17 +85,28 @@ def _build_title(date_str: str, entry: Dict, units: Dict[str, str]) -> str:
     )
 
 
-def _svg_for_year(activity_type: str, year: int, entries: Dict[str, Dict], id_to_url: Dict[int, str], units: Dict[str, str]) -> str:
+def _svg_for_year(
+    activity_type: str,
+    year: int,
+    entries: Dict[str, Dict],
+    id_to_url: Dict[int, str],
+    units: Dict[str, str],
+) -> str:
     start = _monday_on_or_before(date(year, 1, 1))
     end = _sunday_on_or_after(date(year, 12, 31))
 
     weeks = ((end - start).days // 7) + 1
-    width = weeks * (CELL + GAP) + PADDING * 2
-    height = 7 * (CELL + GAP) + PADDING * 2
+    width = weeks * (CELL + GAP) + PADDING * 2 + LABEL_LEFT
+    height = 7 * (CELL + GAP) + PADDING * 2 + LABEL_TOP
+
+    grid_x = PADDING + LABEL_LEFT
+    grid_y = PADDING + LABEL_TOP
 
     max_count = 0
     for entry in entries.values():
         max_count = max(max_count, int(entry.get("count", 0)))
+
+    colors = TYPE_COLORS.get(activity_type, DEFAULT_COLORS)
 
     lines = []
     lines.append('<?xml version="1.0" encoding="UTF-8"?>')
@@ -96,7 +116,28 @@ def _svg_for_year(activity_type: str, year: int, entries: Dict[str, Dict], id_to
     lines.append(
         f'<rect width="{width}" height="{height}" fill="white"/>'
     )
-    lines.append(f'<g transform="translate({PADDING},{PADDING})">')
+    lines.append(
+        f'<text x="{PADDING}" y="{PADDING + 12}" font-size="12" fill="{TEXT_COLOR}" font-family="Arial, sans-serif">{year}</text>'
+    )
+
+    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    for month in range(1, 13):
+        first_day = date(year, month, 1)
+        week_index = (first_day - start).days // 7
+        x = grid_x + week_index * (CELL + GAP)
+        lines.append(
+            f'<text x="{x}" y="{PADDING + 12}" font-size="10" fill="{LABEL_COLOR}" font-family="Arial, sans-serif">{month_labels[month - 1]}</text>'
+        )
+
+    day_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    for row, label in enumerate(day_labels):
+        y = grid_y + row * (CELL + GAP) + CELL - 2
+        x = PADDING + LABEL_LEFT - 6
+        lines.append(
+            f'<text x="{x}" y="{y}" font-size="9" fill="{LABEL_COLOR}" font-family="Arial, sans-serif" text-anchor="end">{label}</text>'
+        )
+
+    lines.append(f'<g transform="translate({grid_x},{grid_y})">')
 
     current = start
     while current <= end:
@@ -118,7 +159,7 @@ def _svg_for_year(activity_type: str, year: int, entries: Dict[str, Dict], id_to
             })
             count = int(entry.get("count", 0))
             level = _level(count, max_count)
-            color = COLORS[level]
+            color = colors[level]
             title = _build_title(date_str, entry, units)
             activity_ids = entry.get("activity_ids", [])
             link = None

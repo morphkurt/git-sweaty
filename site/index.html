@@ -87,6 +87,49 @@
         box-shadow: var(--shadow);
       }
 
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .heatmaps {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+
+      .heatmap-area {
+        position: relative;
+        display: inline-block;
+      }
+
+      .year-label,
+      .month-label,
+      .day-label {
+        position: absolute;
+        font-family: "JetBrains Mono", monospace;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 10px;
+      }
+
+      .year-label {
+        font-size: 12px;
+        color: var(--text);
+        top: 0;
+        left: 0;
+      }
+
+      .month-label {
+        top: 0;
+      }
+
+      .day-label {
+        text-align: right;
+        width: 30px;
+      }
+
       .legend {
         display: flex;
         gap: 6px;
@@ -166,17 +209,13 @@
     <div class="app">
       <header>
         <h1>Workout Heatmaps</h1>
-        <p class="subtitle">GitHub-style calendars of your Strava activities.</p>
         <div class="controls">
           <select id="typeSelect"></select>
           <select id="yearSelect"></select>
         </div>
       </header>
 
-      <div class="card">
-        <div id="heatmap" class="grid"></div>
-        <div class="legend" id="legend"></div>
-      </div>
+      <div id="heatmaps" class="heatmaps"></div>
     </div>
 
     <div id="tooltip" class="tooltip"></div>
