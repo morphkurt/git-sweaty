@@ -5,30 +5,35 @@ Sync Strava activities, normalize and aggregate them, and generate GitHub-style 
 Live site: [Interactive Heatmaps](https://aspain.github.io/git-sweaty/)
 Last updated: <!-- UPDATED:START -->2026-02-03 16:14 UTC<!-- UPDATED:END -->
 
-## Quick start
+## Quick start (GitHub Actions only)
 
-1. Install deps:
+1. Generate a **refresh token** via OAuth (the token shown on the Strava API page often does **not** work):
+
+Open this URL in your browser (replace `CLIENT_ID`):
+
+```
+https://www.strava.com/oauth/authorize?client_id=CLIENT_ID&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=read,activity:read_all
+```
+
+After approval you’ll be redirected to a `localhost` URL that won’t load. That’s expected. Copy the `code` from the URL and exchange it:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+curl -X POST https://www.strava.com/oauth/token \
+  -d client_id=CLIENT_ID \
+  -d client_secret=CLIENT_SECRET \
+  -d code=THE_CODE_FROM_THE_URL \
+  -d grant_type=authorization_code
 ```
 
-2. Add your Strava credentials to `config.local.yaml` (this file is ignored by git):
+Copy the `refresh_token` from the response.
 
-```yaml
-strava:
-  client_id: "YOUR_CLIENT_ID"
-  client_secret: "YOUR_CLIENT_SECRET"
-  refresh_token: "YOUR_REFRESH_TOKEN"
-```
+2. Add GitHub secrets (repo → Settings → Secrets and variables → Actions):
+- `STRAVA_CLIENT_ID`
+- `STRAVA_CLIENT_SECRET`
+- `STRAVA_REFRESH_TOKEN` (from the OAuth exchange above)
 
-3. Run the pipeline:
-
-```bash
-python scripts/run_pipeline.py --commit
-```
+3. Run the workflow:
+Go to **Actions → Sync Strava Heatmaps → Run workflow**.
 
 This will:
 - sync raw activities into `activities/raw/`
@@ -41,7 +46,7 @@ This will:
 
 ## Configuration
 
-Base settings live in `config.yaml`. Put secrets in `config.local.yaml`.
+Base settings live in `config.yaml`. Secrets are injected by GitHub Actions at runtime (no local `config.local.yaml` needed).
 
 Key options:
 - `sync.lookback_years` (default 5)
@@ -54,7 +59,7 @@ Key options:
 - `units.elevation` (`ft` or `m`)
 - `rate_limits.*` (free Strava API throttling caps)
 
-## GitHub Actions (optional)
+## GitHub Actions
 
 Add secrets to your repo:
 - `STRAVA_CLIENT_ID`
