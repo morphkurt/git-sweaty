@@ -24,14 +24,16 @@ PADDING = 16
 LABEL_LEFT = 36
 LABEL_TOP = 20
 
-DEFAULT_COLORS = ["#f3f5f8", "#dfeae4", "#bdd8cf", "#8ebfad", "#5f9f8a"]
+DEFAULT_COLORS = ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#1f2937"]
 TYPE_COLORS = {
-    "Run": ["#f3f5f8", "#dee8f6", "#bfcfe9", "#93aed7", "#5d82c1"],
-    "Ride": ["#f3f5f8", "#dff1e7", "#bcdcc9", "#8cbda2", "#5c9674"],
-    "WeightTraining": ["#f3f5f8", "#f3dddd", "#e7bcbc", "#d59393", "#b66565"],
+    "Run": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#01cdfe"],
+    "Ride": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#05ffa1"],
+    "WeightTraining": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#ff71ce"],
 }
-LABEL_COLOR = "#6b7280"
-TEXT_COLOR = "#111827"
+LABEL_COLOR = "#cbd5e1"
+TEXT_COLOR = "#e5e7eb"
+BG_COLOR = "#0f172a"
+STROKE_COLOR = "#0f172a"
 
 
 def _year_range_from_config(config: Dict) -> List[int]:
@@ -100,7 +102,7 @@ def _svg_for_year(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">'  # noqa: E501
     )
     lines.append(
-        f'<rect width="{width}" height="{height}" fill="white"/>'
+        f'<rect width="{width}" height="{height}" fill="{BG_COLOR}"/>'
     )
     lines.append(
         f'<text x="{PADDING}" y="{PADDING + 12}" font-size="12" fill="{TEXT_COLOR}" font-family="Arial, sans-serif">{year}</text>'
@@ -153,7 +155,7 @@ def _svg_for_year(
 
         rect = (
             f'<rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" '
-            f'fill="{color}" stroke="#ffffff" stroke-width="1"/>'
+            f'fill="{color}" stroke="{STROKE_COLOR}" stroke-width="1"/>'
         )
 
         if title:
