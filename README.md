@@ -49,6 +49,13 @@ This will:
 - build `site/data.json`
 - commit the changes (one commit per run)
 
+## GitHub Pages setup
+
+1. Go to **Settings → Pages**.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Run the workflow once (Actions → Sync Strava Heatmaps). The **Deploy Pages** workflow will publish `site/` automatically.
+4. Your site will be available at `https://<your-username>.github.io/<repo-name>/` once the deploy finishes.
+
 ## Configuration
 
 Base settings live in `config.yaml`. Secrets are injected by GitHub Actions at runtime (no local `config.local.yaml` needed).
