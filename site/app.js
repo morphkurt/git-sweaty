@@ -375,13 +375,12 @@ function buildCard(type, year, aggregates, units, options = {}) {
 
   const statItems = [
     { label: "Total Workouts", value: totals.count.toLocaleString() },
-    { label: "Active Days", value: activeDays.size.toLocaleString() },
     { label: "Total Time", value: formatDuration(totals.moving_time) },
   ];
 
   const hideDistanceElevation = type === "WeightTraining";
   if (!hideDistanceElevation) {
-    statItems.splice(2, 0, {
+    statItems.splice(1, 0, {
       label: "Total Distance",
       value: formatDistance(totals.distance, units || { distance: "mi" }),
     });

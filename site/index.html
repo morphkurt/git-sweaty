@@ -179,13 +179,14 @@
       .card-body {
         display: grid;
         grid-template-columns: max-content minmax(180px, 1fr);
-        gap: 24px;
+        gap: 16px;
         align-items: start;
       }
 
       .card-stats {
         display: grid;
-        gap: 10px;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         align-content: start;
       }
 
@@ -193,19 +194,19 @@
         background: rgba(15, 23, 42, 0.45);
         border: 1px solid rgba(148, 163, 184, 0.2);
         border-radius: 10px;
-        padding: 10px 12px;
+        padding: 8px 10px;
       }
 
       .card-stat-label {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--muted);
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
 
       .card-stat-value {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 600;
       }
 
