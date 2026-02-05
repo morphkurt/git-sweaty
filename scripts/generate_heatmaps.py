@@ -24,17 +24,20 @@ PADDING = 16
 LABEL_LEFT = 36
 LABEL_TOP = 20
 
-DEFAULT_COLORS = ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#1f2937"]
+DEFAULT_COLORS = ["#1f2937", "#334155", "#475569", "#64748b", "#94a3b8"]
 TYPE_COLORS = {
-    "Run": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#01cdfe"],
-    "Ride": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#05ffa1"],
-    "WeightTraining": ["#1f2937", "#1f2937", "#1f2937", "#1f2937", "#ff71ce"],
+    "Run": ["#1f2937", "#334155", "#38bdf8", "#0ea5e9", "#01cdfe"],
+    "Ride": ["#1f2937", "#334155", "#34d399", "#10b981", "#05ffa1"],
+    "WeightTraining": ["#1f2937", "#334155", "#f472b6", "#ec4899", "#ff71ce"],
 }
+
 LABEL_COLOR = "#cbd5e1"
 TEXT_COLOR = "#e5e7eb"
 BG_COLOR = "#0f172a"
 STROKE_COLOR = "#0f172a"
 
+
+# ──────────────────────────── helpers ────────────────────────────
 
 def _year_range_from_config(config: Dict) -> List[int]:
     sync_cfg = config.get("sync", {})
@@ -59,8 +62,34 @@ def _sunday_on_or_after(d: date) -> date:
     return d + timedelta(days=(6 - d.weekday()))
 
 
-def _level(count: int) -> int:
-    return 4 if count > 0 else 0
+def _daily_speed(entry: Dict) -> float:
+    distance = float(entry.get("distance", 0.0))
+    moving_time = float(entry.get("moving_time", 0.0))
+    if distance <= 0 or moving_time <= 0:
+        return 0.0
+    return distance / (moving_time / 3600.0)
+
+
+def _percentiles(values: List[float]) -> List[float]:
+    if not values:
+        return [0, 0, 0, 0]
+    values = sorted(values)
+    n = len(values)
+    return [
+        values[int(n * 0.2)],
+        values[int(n * 0.4)],
+        values[int(n * 0.6)],
+        values[int(n * 0.8)],
+    ]
+
+
+def _speed_level(speed: float, cuts: List[float]) -> int:
+    if speed <= 0:
+        return 0
+    for i, c in enumerate(cuts):
+        if speed < c:
+            return i
+    return 4
 
 
 def _build_title(date_str: str, entry: Dict, units: Dict[str, str]) -> str:
@@ -68,15 +97,19 @@ def _build_title(date_str: str, entry: Dict, units: Dict[str, str]) -> str:
     distance = format_distance(entry.get("distance", 0.0), units["distance"])
     duration = format_duration(entry.get("moving_time", 0.0))
     elevation = format_elevation(entry.get("elevation_gain", 0.0), units["elevation"])
+    speed = _daily_speed(entry)
 
     return (
         f"{date_str}\n"
         f"{count} workout{'s' if count != 1 else ''}\n"
         f"Distance: {distance}\n"
         f"Duration: {duration}\n"
+        f"Avg speed: {speed:.1f} {units['distance']}/h\n"
         f"Elevation: {elevation}"
     )
 
+
+# ──────────────────────────── SVG ────────────────────────────
 
 def _svg_for_year(
     activity_type: str,
@@ -96,28 +129,34 @@ def _svg_for_year(
 
     colors = TYPE_COLORS.get(activity_type, DEFAULT_COLORS)
 
+    # compute yearly speed distribution
+    speeds = [
+        _daily_speed(e)
+        for e in entries.values()
+        if _daily_speed(e) > 0
+    ]
+    cuts = _percentiles(speeds)
+
     lines = []
     lines.append('<?xml version="1.0" encoding="UTF-8"?>')
     lines.append(
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">'  # noqa: E501
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">'
     )
-    lines.append(
-        f'<rect width="{width}" height="{height}" fill="{BG_COLOR}"/>'
-    )
+    lines.append(f'<rect width="{width}" height="{height}" fill="{BG_COLOR}"/>')
     lines.append(
         f'<text x="{PADDING}" y="{PADDING + 12}" font-size="12" fill="{TEXT_COLOR}" font-family="Arial, sans-serif">{year}</text>'
     )
 
-    month_labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    month_labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
     for month in range(1, 13):
         first_day = date(year, month, 1)
         week_index = (first_day - start).days // 7
         x = grid_x + week_index * (CELL + GAP)
         lines.append(
-            f'<text x="{x}" y="{PADDING + 12}" font-size="10" fill="{LABEL_COLOR}" font-family="Arial, sans-serif">{month_labels[month - 1]}</text>'
+            f'<text x="{x}" y="{PADDING + 12}" font-size="10" fill="{LABEL_COLOR}" font-family="Arial, sans-serif">{month_labels[month-1]}</text>'
         )
 
-    day_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    day_labels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
     for row, label in enumerate(day_labels):
         y = grid_y + row * (CELL + GAP) + CELL - 2
         x = PADDING + LABEL_LEFT - 6
@@ -130,23 +169,15 @@ def _svg_for_year(
     current = start
     while current <= end:
         week_index = (current - start).days // 7
-        row = current.weekday()  # Monday=0
+        row = current.weekday()
         x = week_index * (CELL + GAP)
         y = row * (CELL + GAP)
 
-        in_year = current.year == year
         date_str = current.isoformat()
-
-        if in_year:
-            entry = entries.get(date_str, {
-                "count": 0,
-                "distance": 0.0,
-                "moving_time": 0.0,
-                "elevation_gain": 0.0,
-                "activity_ids": [],
-            })
-            count = int(entry.get("count", 0))
-            level = _level(count)
+        entry = entries.get(date_str)
+        if current.year == year and entry:
+            speed = _daily_speed(entry)
+            level = _speed_level(speed, cuts)
             color = colors[level]
             title = _build_title(date_str, entry, units)
         else:
@@ -157,104 +188,59 @@ def _svg_for_year(
             f'<rect x="{x}" y="{y}" width="{CELL}" height="{CELL}" '
             f'fill="{color}" stroke="{STROKE_COLOR}" stroke-width="1"/>'
         )
-
         if title:
-            rect = rect[:-2] + f' data-date="{date_str}"><title>{title}</title></rect>'
+            rect = rect[:-2] + f'><title>{title}</title></rect>'
 
         lines.append(rect)
         current += timedelta(days=1)
 
-    lines.append("</g>")
-    lines.append("</svg>")
+    lines.append("</g></svg>")
     return "\n".join(lines) + "\n"
 
 
-def _readme_section(types: List[str], years_desc: List[int]) -> str:
-    lines = []
-    lines.append("![Run 2025](heatmaps/Run/2025.svg)")
-    lines.append("")
-    return "\n".join(lines).rstrip() + "\n"
-
-
-def _update_readme(types: List[str], years_desc: List[int]) -> None:
-    if not os.path.exists(README_PATH):
-        return
-    with open(README_PATH, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    start_tag = "<!-- HEATMAPS:START -->"
-    end_tag = "<!-- HEATMAPS:END -->"
-    section = _readme_section(types, years_desc)
-
-    if start_tag in content and end_tag in content:
-        before, rest = content.split(start_tag, 1)
-        _, after = rest.split(end_tag, 1)
-        new_content = before + start_tag + "\n" + section + end_tag + after
-    else:
-        new_content = content.rstrip() + "\n\n" + start_tag + "\n" + section + end_tag + "\n"
-
-    updated_tag_start = "<!-- UPDATED:START -->"
-    updated_tag_end = "<!-- UPDATED:END -->"
-    updated_value = utc_now().strftime("%Y-%m-%d %H:%M UTC")
-    if updated_tag_start in new_content and updated_tag_end in new_content:
-        before, rest = new_content.split(updated_tag_start, 1)
-        _, after = rest.split(updated_tag_end, 1)
-        new_content = before + updated_tag_start + updated_value + updated_tag_end + after
-
-    with open(README_PATH, "w", encoding="utf-8") as f:
-        f.write(new_content)
-
-
-def _write_site_data(payload: Dict) -> None:
-    ensure_dir("site")
-    write_json(SITE_DATA_PATH, payload)
-
+# ──────────────────────────── orchestration ────────────────────────────
 
 def generate():
     config = load_config()
     types = config.get("activities", {}).get("types", []) or []
 
-    units = config.get("units", {})
+    units_cfg = config.get("units", {})
     units = {
-        "distance": units.get("distance", "mi"),
-        "elevation": units.get("elevation", "ft"),
+        "distance": units_cfg.get("distance", "mi"),
+        "elevation": units_cfg.get("elevation", "ft"),
     }
 
     aggregates = read_json(AGG_PATH)
     years = _year_range_from_config(config)
 
     for activity_type in types:
-        type_dir = os.path.join("heatmaps", activity_type)
-        ensure_dir(type_dir)
+        out_dir = os.path.join("heatmaps", activity_type)
+        ensure_dir(out_dir)
         for year in years:
-            year_entries = (
+            entries = (
                 aggregates.get("years", {})
                 .get(str(year), {})
                 .get(activity_type, {})
             )
-            svg = _svg_for_year(activity_type, year, year_entries, units)
-            path = os.path.join(type_dir, f"{year}.svg")
-            with open(path, "w", encoding="utf-8") as f:
+            svg = _svg_for_year(activity_type, year, entries, units)
+            with open(os.path.join(out_dir, f"{year}.svg"), "w", encoding="utf-8") as f:
                 f.write(svg)
 
-    years_desc = list(reversed(years))
-    _update_readme(types, years_desc)
-
-    site_payload = {
-        "generated_at": utc_now().isoformat(),
-        "years": years,
-        "types": types,
-        "aggregates": aggregates.get("years", {}),
-        "units": units,
-    }
-    _write_site_data(site_payload)
+    write_json(
+        SITE_DATA_PATH,
+        {
+            "generated_at": utc_now().isoformat(),
+            "years": years,
+            "types": types,
+            "aggregates": aggregates.get("years", {}),
+            "units": units,
+        },
+    )
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate SVG heatmaps and README section")
-    args = parser.parse_args()
     generate()
-    print("Generated heatmaps and README section")
+    print("Generated heatmaps with percentile-based intensity")
     return 0
 
 
