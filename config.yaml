@@ -24,7 +24,6 @@ activities:
   types:
     - Run
     - Ride
-    - WeightTraining
   type_aliases:
     TrailRun: Run
     VirtualRun: Run
