@@ -12500,6 +12500,36 @@
     "year": 2026
   },
   {
+    "date": "2026-01-30",
+    "distance": 4003.9,
+    "elevation_gain": 9.0,
+    "id": 17221801691,
+    "moving_time": 1858.0,
+    "start_date_local": "2026-01-30T09:05:07Z",
+    "type": "Run",
+    "year": 2026
+  },
+  {
+    "date": "2026-01-31",
+    "distance": 4280.6,
+    "elevation_gain": 6.0,
+    "id": 17243785123,
+    "moving_time": 2032.0,
+    "start_date_local": "2026-01-31T07:10:05Z",
+    "type": "Run",
+    "year": 2026
+  },
+  {
+    "date": "2026-02-01",
+    "distance": 630.5,
+    "elevation_gain": 0.0,
+    "id": 17243785057,
+    "moving_time": 1816.0,
+    "start_date_local": "2026-02-01T07:19:30Z",
+    "type": "Run",
+    "year": 2026
+  },
+  {
     "date": "2026-02-01",
     "distance": 0.0,
     "elevation_gain": 0.0,
@@ -12507,6 +12537,26 @@
     "moving_time": 3419.0,
     "start_date_local": "2026-02-01T08:51:43Z",
     "type": "WeightTraining",
+    "year": 2026
+  },
+  {
+    "date": "2026-02-02",
+    "distance": 4278.0,
+    "elevation_gain": 8.0,
+    "id": 17255151685,
+    "moving_time": 1908.0,
+    "start_date_local": "2026-02-02T08:58:20Z",
+    "type": "Run",
+    "year": 2026
+  },
+  {
+    "date": "2026-02-03",
+    "distance": 4317.8,
+    "elevation_gain": 15.0,
+    "id": 17264964574,
+    "moving_time": 1982.0,
+    "start_date_local": "2026-02-03T07:57:59Z",
+    "type": "Run",
     "year": 2026
   },
   {
@@ -12521,12 +12571,32 @@
   },
   {
     "date": "2026-02-04",
+    "distance": 4005.1,
+    "elevation_gain": 12.0,
+    "id": 17277385210,
+    "moving_time": 1852.0,
+    "start_date_local": "2026-02-04T09:01:48Z",
+    "type": "Run",
+    "year": 2026
+  },
+  {
+    "date": "2026-02-04",
     "distance": 0.0,
     "elevation_gain": 0.0,
     "id": 17284217381,
     "moving_time": 2651.0,
     "start_date_local": "2026-02-04T07:51:48Z",
     "type": "WeightTraining",
+    "year": 2026
+  },
+  {
+    "date": "2026-02-05",
+    "distance": 4411.6,
+    "elevation_gain": 11.0,
+    "id": 17289292852,
+    "moving_time": 2053.0,
+    "start_date_local": "2026-02-05T09:05:40Z",
+    "type": "Run",
     "year": 2026
   }
 ]
