@@ -8,7 +8,7 @@ sync:
   lookback_years: 6
   start_date: "2018-01-01" # optional; overrides lookback_years when set
   recent_days: 7
-  resume_backfill: false
+  resume_backfill: true
   per_page: 200
   prune_deleted: false
 
