@@ -5,10 +5,10 @@ strava:
   refresh_token: ""
 
 sync:
-  lookback_years: 5
-  start_date: "2019-01-01" # optional; overrides lookback_years when set
+  lookback_years: 6
+  start_date: "2018-01-01" # optional; overrides lookback_years when set
   recent_days: 7
-  resume_backfill: true
+  resume_backfill: false
   per_page: 200
   prune_deleted: false
 
