@@ -356,7 +356,10 @@ function buildHeatmapArea(aggregates, year, units, colors, type, layout, options
   grid.className = "grid";
 
   for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
-    const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+    // Get the local browser date in YYYY-MM-DD format.
+    // We use 'en-CA' locale because it outputs ISO-like format (year-month-day),
+    // while still using the browser's local time (not UTC).  
+    const dateStr = day.toLocaleDateString('en-CA'); 
     const inYear = day.getFullYear() === year;
     const entry = (aggregates && aggregates[dateStr]) || {
       count: 0,
