@@ -5,8 +5,8 @@ strava:
   refresh_token: ""
 
 sync:
-  lookback_years: 6
-  start_date: "2018-01-01" # optional; overrides lookback_years when set
+  lookback_years: 5
+  start_date: "2019-01-01" # optional; overrides lookback_years when set
   recent_days: 7
   resume_backfill: true
   per_page: 200
@@ -24,6 +24,11 @@ activities:
   types:
     - Run
     - Ride
+    - WeightTraining
+  include_all_types: false  # set true to ingest non-featured Strava types too
+  group_other_types: true   # when true, map non-featured types into smart buckets
+  other_bucket: OtherSports # fallback bucket for unknown activity categories
+  group_aliases: {}         # optional explicit group overrides, e.g. {SkiErg: WinterSports}
   type_aliases:
     TrailRun: Run
     VirtualRun: Run
@@ -40,5 +45,5 @@ activities:
     WeightTraining: WeightTraining
 
 units:
-  distance: "km"   # "mi" or "km"
-  elevation: "m"  # "ft" or "m"
+  distance: "mi"   # "mi" or "km"
+  elevation: "ft"  # "ft" or "m"

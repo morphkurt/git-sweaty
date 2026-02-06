@@ -6,7 +6,9 @@ Sync Strava activities, normalize and aggregate them, and generate GitHub-style 
 - Note: The GitHub Pages site is optimized for responsive desktop/mobile viewing.
 
 <!-- HEATMAPS:START -->
-![Run 2025](heatmaps/Run/2025.svg)
+Preview:
+
+![All Workouts 2025](heatmaps/AllWorkouts/2025.svg)
 <!-- HEATMAPS:END -->
 
 ## Strava App Setup
@@ -69,8 +71,12 @@ Key options:
 - `sync.start_date` (YYYY-MM-DD, overrides lookback_years)
 - `sync.recent_days` (sync recent activities even while backfilling)
 - `sync.resume_backfill` (persist cursor to continue older pages across days)
-- `activities.types` (activity types to include)
-- `activities.type_aliases` (map Strava types to your canonical types)
+- `activities.types` (featured activity types shown first in UI)
+- `activities.include_all_types` (include non-featured Strava types; default `false`)
+- `activities.group_other_types` (auto-group non-featured types into smart categories)
+- `activities.other_bucket` (fallback group name when no smart match is found)
+- `activities.group_aliases` (optional explicit map of a raw/canonical type to a group)
+- `activities.type_aliases` (map Strava types to your canonical types before grouping)
 - `units.distance` (`mi` or `km`)
 - `units.elevation` (`ft` or `m`)
 - `rate_limits.*` (free Strava API throttling caps)
@@ -86,8 +92,6 @@ Then enable the scheduled workflow in `.github/workflows/sync.yml`.
 
 ## Notes
 
-- Raw activities are stored locally for processing but are not committed (`activities/raw/` is ignored). This prevents publishing detailed per‑activity payloads and location traces.
-- Normalized data does not include Strava activity URLs, so public readers cannot deep‑link to private activities.
-- SVGs are deterministic and optimized for README rendering.
-- README updates automatically between the `HEATMAPS:START` and `HEATMAPS:END` markers.
+- Raw activities are stored locally for processing but are not committed (`activities/raw/` is ignored). This prevents publishing detailed per‑activity payloads and gps location traces.
+- On first run for a new athlete, the workflow auto-resets persisted outputs (`data/*.json`, `heatmaps/`, `site/data.json`) to avoid mixing data across forks. A fingerprint-only file is stored at `data/athletes.json` and does not include athlete IDs or profile data.
 - The sync script rate-limits to free Strava API caps (200 overall / 15 min, 2,000 overall daily; 100 read / 15 min, 1,000 read daily). Initial backfill may take multiple days; the cursor is stored in `data/backfill_state.json` and resumes automatically. Once backfill is complete, only the recent sync runs.

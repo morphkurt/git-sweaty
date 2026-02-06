@@ -24,6 +24,11 @@
         --grid-pad-right: 4px;
         --grid-pad-bottom: 6px;
         --grid-pad-left: 6px;
+        --axis-width: 36px;
+        --axis-gap: 8px;
+        --label-row-height: 32px;
+        --label-gap: 6px;
+        --label-gap-rotated: 10px;
         --radius: 14px;
         --shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
       }
@@ -269,6 +274,64 @@
         gap: 24px;
       }
 
+      .more-stats {
+        --axis-gap: 8px;
+        --label-row-height: calc(var(--cell) * 1.2);
+        --label-gap: 0px;
+        --label-gap-rotated: 10px;
+        display: grid;
+        grid-template-columns: max-content minmax(180px, 1fr);
+        grid-template-rows: auto 1fr;
+        column-gap: 16px;
+        row-gap: 0;
+        align-items: start;
+      }
+
+      .more-stats-title {
+        margin: 0;
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .more-stats-body {
+        display: block;
+        grid-column: 1;
+        grid-row: 2;
+        margin-top: -14px;
+      }
+
+      .more-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, max-content);
+        column-gap: clamp(32px, 5vw, 56px);
+        row-gap: 12px;
+        align-items: start;
+        justify-content: start;
+        width: max-content;
+      }
+
+      .more-stats-col {
+        display: grid;
+        align-content: start;
+        justify-items: center;
+        width: max-content;
+      }
+
+      .more-stats-facts {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: stretch;
+        justify-content: center;
+        justify-self: end;
+      }
+
+      .more-stats-fact-card {
+        width: 100%;
+      }
+
       .heatmap-area {
         display: inline-grid;
         grid-template-columns: 36px max-content;
@@ -337,6 +400,106 @@
         background: rgba(15, 23, 42, 0.8);
       }
 
+      .stat-panel {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .stat-body {
+        display: grid;
+        gap: 16px;
+        padding-top: 4px;
+      }
+
+      .more-stats .stat-body {
+        padding-top: 0;
+      }
+
+      .stat-subtitle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .stat-grid {
+        display: grid;
+        gap: var(--gap);
+        width: max-content;
+      }
+
+      .axis-grid-wrap {
+        position: relative;
+        display: inline-block;
+        width: max-content;
+      }
+
+      .axis-bg {
+        position: absolute;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.8);
+        z-index: 0;
+      }
+
+      .stat-matrix {
+        display: block;
+        min-width: max-content;
+      }
+
+      .axis-grid {
+        display: grid;
+        gap: var(--gap);
+        align-items: center;
+        position: relative;
+        z-index: 1;
+      }
+
+      .axis-cell {
+        width: var(--cell);
+        height: var(--cell);
+      }
+
+      .axis-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #f1f5f9;
+        text-align: center;
+        line-height: 1;
+        white-space: nowrap;
+        align-self: end;
+        --axis-label-shift: 0px;
+        transform: translateX(var(--axis-label-shift));
+      }
+
+      .axis-label.x {
+        text-align: left;
+        justify-self: start;
+        --axis-label-shift: calc(var(--cell) / 2 - 0.5ch);
+      }
+
+      .axis-label.y {
+        justify-self: end;
+        text-align: right;
+        align-self: center;
+        padding-right: var(--axis-gap);
+      }
+
+      .axis-label.diagonal {
+        transform: translateX(var(--axis-label-shift)) rotate(-45deg);
+        transform-origin: 50% 100%;
+      }
+
+      .more-stats .axis-label.diagonal {
+        transform: translateX(var(--axis-label-shift)) rotate(-45deg) translateY(-4px);
+      }
+
+      .more-stats .axis-label.x.diagonal {
+        --axis-label-shift: calc(var(--cell) / 2 - 0.5ch + 1px);
+      }
+
+      .axis-label.empty {
+        visibility: hidden;
+      }
+
       .cell {
         width: var(--cell);
         height: var(--cell);
@@ -399,6 +562,11 @@
           --grid-pad-right: 3px;
           --grid-pad-bottom: 4px;
           --grid-pad-left: 4px;
+          --axis-width: 34px;
+          --axis-gap: 8px;
+          --label-row-height: 28px;
+          --label-gap: 5px;
+          --label-gap-rotated: 8px;
         }
         body {
           padding: 24px 12px;
@@ -413,22 +581,25 @@
         .header-top {
           grid-template-columns: 1fr;
           grid-template-rows: auto auto auto auto;
-          justify-items: start;
+          justify-items: center;
           row-gap: 8px;
         }
         h1 {
           grid-column: 1;
           grid-row: 2;
-          text-align: left;
+          text-align: center;
         }
         .updated {
           grid-column: 1;
           grid-row: 1;
+          justify-self: center;
+          text-align: center;
         }
         .controls {
           grid-column: 1;
           grid-row: 3;
-          justify-content: flex-start;
+          justify-content: center;
+          justify-self: center;
           display: flex;
         }
         .button-row {
@@ -437,7 +608,7 @@
         .repo-link {
           grid-column: 1;
           grid-row: 4;
-          justify-self: start;
+          justify-self: center;
         }
         .summary {
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -456,7 +627,57 @@
           grid-template-columns: 1fr;
         }
         .card-stats {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          width: max-content;
+          max-width: 100%;
+          justify-content: flex-start;
+          align-content: flex-start;
+        }
+        .card-stats .card-stat {
+          width: fit-content;
+          max-width: 100%;
+          flex: 0 1 auto;
+        }
+        .more-stats {
+          --label-gap-rotated: 8px;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto;
+          row-gap: 8px;
+        }
+        .more-stats-body {
+          grid-column: 1;
+          grid-row: 2;
+          margin-top: 0;
+        }
+        .more-stats-facts {
+          grid-column: 1;
+          grid-row: 3;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 12px;
+          align-self: start;
+          justify-self: start;
+          justify-content: flex-start;
+          align-items: stretch;
+          align-content: flex-start;
+          width: max-content;
+          max-width: 100%;
+          -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+        }
+        .more-stats-fact-card {
+          width: fit-content;
+          max-width: 100%;
+          flex: 0 1 auto;
+        }
+        .more-stats-fact-card .card-stat-label {
+          font-size: 10px;
+        }
+        .more-stats-fact-card .card-stat-value {
+          font-size: 14px;
         }
       }
 
@@ -464,8 +685,14 @@
         :root {
           --cell: 9px;
           --gap: 2px;
+          --axis-width: 32px;
+          --axis-gap: 8px;
+          --label-row-height: 26px;
+          --label-gap: 4px;
+          --label-gap-rotated: 6px;
         }
       }
+
     </style>
   </head>
   <body>
@@ -480,7 +707,7 @@
             <select id="typeSelect"></select>
             <select id="yearSelect"></select>
           </div>
-          <a class="repo-link" href="https://github.com/morphkurt/git-sweaty">github.com/morphkurt/git-sweaty</a>
+          <a class="repo-link" href="https://github.com/aspain/git-sweaty">github.com/aspain/git-sweaty</a>
         </div>
       </header>
 
@@ -490,6 +717,6 @@
 
     <div id="tooltip" class="tooltip"></div>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=22"></script>
   </body>
 </html>
