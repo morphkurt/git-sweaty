@@ -6869,6 +6869,12 @@
       "hour": 8,
       "type": "Run",
       "year": 2026
+    },
+    {
+      "date": "2026-02-10",
+      "hour": 7,
+      "type": "Run",
+      "year": 2026
     }
   ],
   "aggregates": {
@@ -16760,11 +16766,20 @@
           "distance": 5002.1,
           "elevation_gain": 9.0,
           "moving_time": 2290.0
+        },
+        "2026-02-10": {
+          "activity_ids": [
+            17343877921
+          ],
+          "count": 1,
+          "distance": 5005.3,
+          "elevation_gain": 13.0,
+          "moving_time": 2212.0
         }
       }
     }
   },
-  "generated_at": "2026-02-09T06:22:51.935803+00:00",
+  "generated_at": "2026-02-10T06:23:12.224481+00:00",
   "type_meta": {
     "Ride": {
       "accent": "#05ffa1",
